@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  movies-api:
+    build: .
+    ports:
+      - 8000:8000
+    volumes: 
+      - .:/app
+    environment:
+      - KEY=django-insecure-$pf%6_=k+j7w+vek83c4ig!cxn(qoka)l(b9n3p83pvhsm*s&z'
+    command: python manage.py runserver 0.0.0.0:8000
