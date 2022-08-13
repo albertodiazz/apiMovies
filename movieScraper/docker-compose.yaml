@@ -1,3 +1,4 @@
+# Con esto solo corremos el servidor de DJANGO
 version: '3.8'
 
 services:
