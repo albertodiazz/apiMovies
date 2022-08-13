@@ -2,6 +2,12 @@
 
 Esta sera mi primer aplicacion en go y lo que buscare sera el hacer una API apartir de hacer WebScraping con BurpSuite en una pagina de peliculas repleta de publicidad y que no tiene una API oficial [GNULA](https://gnula.nu/). 
 
+## Tecnologias
+
++ db: Contiene docker compose que levanta mongo
++ movies: Contiene el docker compose y Dockerfile que levanta Django con python 
++ network: Contiene la configuracion de NGNIX y TOR 
+
 ## Objetivos
 
 + Poder buscar las peliculas desde un script.
