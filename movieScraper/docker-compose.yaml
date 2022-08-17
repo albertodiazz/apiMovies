@@ -1,4 +1,5 @@
-# Con esto solo corremos el servidor de DJANGO
+# Con esto corremos el servidor de DJANGO
+# Junton con Gunicorn y Ngnix
 version: '3.8'
 
 services:
@@ -12,3 +13,23 @@ services:
       - KEY=django-insecure-$pf%6_=k+j7w+vek83c4ig!cxn(qoka)l(b9n3p83pvhsm*s&z'
       - DEBUG=1
     command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn --bind 0.0.0.0:8000 movieScraper.wsgi:application
+    networks:
+      - django-network
+
+  nginx-django:
+    image: nginx:1.23.1-alpine
+    container_name: nginx-django
+    volumes:
+      - ./network/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    restart: on-failure
+    ports:
+      - 80:80
+    depends_on:
+      - movies-api
+    networks:
+      - django-network
+
+networks:
+  django-network:
+    name: django-network
