@@ -8,25 +8,27 @@ import json
 import logging
 
 # Create your views here.
-class MoviesServices(View):
+class MoviesSearch(View):
     '''
     Endpoinst:
         [GET]
             - /<nameMovie> : Aqui es donde buscamos la pelicula
     '''
 
-    def get(self, request):
+    def get(self, request, search):
         # TODO: Pendiente
+        # [] Debemos conectar nuestra base de datos para poder almacenar nuestras credenciales
+        #    de la API y asi saber si sigue siendo util o no
         # [] Meter la opcion de buscar, al buscar debemos setear cuantos resultados
         #    queremos obtener y este solo nos debe regresar los links con url que si tengan videos
         # [] Hay que meter la logica de que si me marca error por falta de apiKey hay que generar una
         #    en automatico
         # TODO: Opcional
         # [] En caso de que no me deje hacer los curl a los links del video es debido al bloqueo
-        #    de su servidor hay que ocupar proxychain con sock5 (Tor) para las peticiones 
+        #    de su servidor hay que ocupar proxychain con sock5 (Tor) para las peticiones o algo similar 
         data = {
-            'result': 200,
-            'body': 'Hola mundo'
+            'result':  200,
+            'body': search 
         }
         return HttpResponse(json.dumps(data, indent=4), 
                             content_type='application/json')
