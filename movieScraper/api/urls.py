@@ -1,10 +1,13 @@
 from django.urls import path
-from .views import MoviesSearch 
-from .views import APIkeyGnula 
+from .views import MoviesSearch
+from .views import statusKey
+from .views import getApiKey
+from .views import newApiKey
 
 urlpatterns = [
-    path('search/<str:search>', MoviesSearch.as_view(), name='get-info-movies'),
-	path('cseKeyGnula/', APIkeyGnula.as_view(), name='get-apiKey-gnula-cse'),
-    # path('boletas/<str:statusPayment>/<str:servicesType>', PaymentServices.as_view(), name='get_boletas_statusPayment'),
-    # path('postform/', postform, name='form'),
+    path('movies/', MoviesSearch.as_view(), name='info-movies'),
+    path('movies/<str:search>', MoviesSearch.as_view(), name='search-movies'),
+    path('key/', getApiKey, name='apiKey-gnula'),
+    path('key/status', statusKey, name='status-apiKey'),
+    path('key/new', newApiKey, name='new-apiKey'),
 ]
