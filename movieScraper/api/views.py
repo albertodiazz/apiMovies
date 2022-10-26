@@ -19,18 +19,13 @@ class MoviesSearch(View):
     '''
     def __init__(self):
         self.getKey = getattr(Keys.objects.first(), 'Key')
-        self.numpages = 500  # Cantidad de resultados en una sola peticion
+        # self.numpages = 500  # Cantidad de resultados en una sola peticion
         self.actualpage = 0  # Pagina en la cual empezamos a buscar
 
-    def get(self, request, search):
-        # TODO: Pendiente
-        # [x] Meter la opcion de buscar, opncion de cantidad de resultados
-        # [x] Hay que manejar el error de cuando no es valida la api
-        # [x] Hay que comprobar que las url de las peliculas funcionen
-        # [] Hay que hacer el inicio del CLI junto con su logo
+    def get(self, request, search, numresults):
         url = [
             'https://cse.google.com/cse/element/v1?',
-            f'rsz=filtered_cse&num={self.numpages}&hl=es&source=gcsc&gss=.es',
+            f'rsz=filtered_cse&num={numresults}&hl=es&source=gcsc&gss=.es',
             f'&start={self.actualpage}&cselibv=3e1664f444e6eb06',
             f'&cx={cx}',
             f'&q={search}&safe=off',
@@ -41,14 +36,22 @@ class MoviesSearch(View):
         joinUrl = ''.join(url)
         curl = requests.get(joinUrl)
         statusKey = re.search('Unauthorized access to internal API', curl.text)
+        # Esto ocurre cuando google detecta trafico raro
+        # TODO: TEST
+        # [] Hay ver si esto funciona
+        tr = 'Our systems have detected unusual traffic from your network'
+        traffic = re.search(tr, curl.text)
+        if traffic:
+            res = 'Me bloquearon a nivel servidor'
         # Aqui debo levantar una excepcion
         if statusKey:
             res = 'API key no es valida'
         else:
             res = 'API key es valida'
 
-        # TODO: IMPORTANTE
+        # TODO: PENDIENTE
         # [] Hay que ultilizar asyncio y concurrencia para hacelerar esto
+        # ya que si no marca un problema de carga
         # [] Agregar el + a la busqueda con dos palbras tipo "hola+mundo"
         # Aqui buscamos los dominios de las peliculas
         regex = f'(?<="url": ")[^"]*gnula[^"]*{search}[^"]*'
@@ -99,7 +102,6 @@ def getApiKey(request):
     else:
         # No existe la Key en la base de datos
         # The Programmable Search Engine ID to use for this request.
-        # TODO : SECURITY revisar que tan seguro es requests
         data = {
             'result': 200,
             'body': 'No existe la Api Key en la base de datos key/new'
