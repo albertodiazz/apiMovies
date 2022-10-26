@@ -22,12 +22,12 @@ class MoviesSearch(View):
         self.numpages = 500  # Cantidad de resultados en una sola peticion
         self.actualpage = 0  # Pagina en la cual empezamos a buscar
 
-    def get(self, request, search=None):
+    def get(self, request, search):
         # TODO: Pendiente
         # [x] Meter la opcion de buscar, opncion de cantidad de resultados
         # [x] Hay que manejar el error de cuando no es valida la api
-        # [] Hay que comprobar que las url de las peliculas funcionen
-        # [] Contemplar la idea de si o no almacenar la info en mongo
+        # [x] Hay que comprobar que las url de las peliculas funcionen
+        # [] Hay que hacer el inicio del CLI junto con su logo
         url = [
             'https://cse.google.com/cse/element/v1?',
             f'rsz=filtered_cse&num={self.numpages}&hl=es&source=gcsc&gss=.es',
@@ -49,6 +49,7 @@ class MoviesSearch(View):
 
         # TODO: IMPORTANTE
         # [] Hay que ultilizar asyncio y concurrencia para hacelerar esto
+        # [] Agregar el + a la busqueda con dos palbras tipo "hola+mundo"
         # Aqui buscamos los dominios de las peliculas
         regex = f'(?<="url": ")[^"]*gnula[^"]*{search}[^"]*'
         getUrlMovies = re.findall(regex, curl.text)
@@ -129,36 +130,43 @@ def newApiKey(request):
     key.save()
     data = {
         'result': 200,
-        'body': f'Generando nueva Key {get_res}'
+        'body': ['Key generada', get_res]
     }
     return HttpResponse(json.dumps(data, indent=4),
                         content_type='application/json')
 
 
 def statusKey(request):
-    getKey = getattr(Keys.objects.first(), 'Key')
-    url = [
-        'https://cse.google.com/cse/element/v1?',
-        'rsz=filtered_cse&num=1&hl=es&source=gcsc&gss=.es',
-        '&start=40&cselibv=3e1664f444e6eb06',
-        f'&cx={cx}',
-        '&q=avenger&safe=off',
-        f'&cse_tok={getKey}',
-        '&exp=csqr,cc&rsToken=undefined&afsExperimentId=undefined',
-        f'&callback={callback}'
-    ]
-    joinUrl = ''.join(url)
+    try:
+        getKey = getattr(Keys.objects.first(), 'Key')
+        url = [
+            'https://cse.google.com/cse/element/v1?',
+            'rsz=filtered_cse&num=1&hl=es&source=gcsc&gss=.es',
+            '&start=40&cselibv=3e1664f444e6eb06',
+            f'&cx={cx}',
+            '&q=avenger&safe=off',
+            f'&cse_tok={getKey}',
+            '&exp=csqr,cc&rsToken=undefined&afsExperimentId=undefined',
+            f'&callback={callback}'
+        ]
+        joinUrl = ''.join(url)
 
-    curlGet = requests.get(joinUrl)
-    statusKey = re.search('Unauthorized access to internal API', curlGet.text)
+        curlGet = requests.get(joinUrl)
+        statusKey = re.search('Unauthorized access to internal API',
+                              curlGet.text)
 
-    if statusKey:
-        res = 'No es valida'
-    else:
-        res = 'Es valida'
-    data = {
-        'result':  200,
-        'body': res
-    }
+        if statusKey:
+            res = 'No es valida'
+        else:
+            res = 'Es valida'
+        data = {
+            'result':  200,
+            'body': res
+        }
+    except AttributeError:
+        data = {
+            'result': 200,
+            'body': 'No existe la Key'
+        }
     return HttpResponse(json.dumps(data, indent=4),
                         content_type='application/json')
