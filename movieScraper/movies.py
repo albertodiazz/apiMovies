@@ -46,6 +46,9 @@ def searchMovies(search: str,
         msg = f'{checkIcon} Searching links...'
         print(msg)
         res = requests.get(f'http://localhost/api/movies/{search}/{num}')
+        # TODO: IMPORTANTE
+        # Es para que lo busque ya que gnula contruye sun likns asi hola-mundo
+        search = '-'.join(search.split(' '))
         if len(res.json()[search]) == 0:
             msgDontFound = f'{error} Dont found anything...'
             print(msgDontFound)
@@ -69,7 +72,7 @@ if args.search:
     status = requests.get('http://localhost/api/key/status')
     if re.fullmatch('Es valida', status.json()['body']):
         # Es valida nos sirve para hacer la paticion
-        msg = f'{checkIcon} Key valida'
+        msg = f'{checkIcon} Valid Key'
         print(msg)
         # print(args.num)
         if args.num:

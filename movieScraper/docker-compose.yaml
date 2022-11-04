@@ -64,6 +64,14 @@ services:
     networks:
       - django-network
 
+  broker-rabbitmq:
+    image: rabbitmq:3.9.24
+    container_name: broker-rabbitmq
+    ports:
+      - 5672:5672
+    networks:
+      - django-network
+
 networks:
   django-network:
     name: django-network

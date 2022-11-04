@@ -1,13 +1,43 @@
 from django.views import View
 from django.http import HttpResponse
 from .models import Keys
+# from asgiref.sync import async_to_sync
 import requests
 import re
 import json
+import time
+from .tasks import runScrapperGnula
 
 
 cx = '014793692610101313036:vwtjajbclpq'
 callback = 'google.search.cse.api6737'
+
+
+def concurrency(request, search, numresults):
+    getKey = getattr(Keys.objects.first(), 'Key')
+    actualpage = 0  # Pagina en la cual empezamos a buscar
+    url = [
+        'https://cse.google.com/cse/element/v1?',
+        f'rsz=filtered_cse&num={numresults}&hl=es&source=gcsc&gss=.es',
+        f'&start={actualpage}&cselibv=3e1664f444e6eb06',
+        f'&cx={cx}',
+        f'&q={search}&safe=off',
+        f'&cse_tok={getKey}',
+        '&exp=csqr,cc&rsToken=undefined&afsExperimentId=undefined',
+        f'&callback={callback}'
+    ]
+    startTime = time.time()
+    joinUrl = ''.join(url)
+
+    runScrapperGnula.delay(joinUrl, search)
+
+    data = {
+        'time': f'{time.time()-startTime}',
+        'res': f'{201}',
+    }
+
+    return HttpResponse(json.dumps(data, indent=4),
+                        content_type='application/json')
 
 
 # Create your views here.
@@ -35,6 +65,7 @@ class MoviesSearch(View):
         ]
         joinUrl = ''.join(url)
         curl = requests.get(joinUrl)
+
         statusKey = re.search('Unauthorized access to internal API', curl.text)
         # Esto ocurre cuando google detecta trafico raro
         # TODO: TEST
@@ -49,13 +80,14 @@ class MoviesSearch(View):
         else:
             res = 'API key es valida'
 
-        # TODO: PENDIENTE
-        # [] Hay que ultilizar asyncio y concurrencia para hacelerar esto
-        # ya que si no marca un problema de carga
-        # [] Agregar el + a la busqueda con dos palbras tipo "hola+mundo"
         # Aqui buscamos los dominios de las peliculas
+        # TODO: IMPORTANTE
+        # Es para que lo busque ya que gnula contruye sun likns asi hola-mundo
+        search = '-'.join(search.split(' '))
         regex = f'(?<="url": ")[^"]*gnula[^"]*{search}[^"]*'
+        # print(regex, flush=True)
         getUrlMovies = re.findall(regex, curl.text)
+        # print(getUrlMovies, flush=True)
         data, movies = {}, {}
         for i in range(len(getUrlMovies)):
             resd = requests.get(str(getUrlMovies[i]))
