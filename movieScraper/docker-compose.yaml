@@ -1,5 +1,5 @@
 # Con esto corremos el servidor de DJANGO
-# Junton con Gunicorn y Ngnix
+# Junton con Daphne y Ngnix
 version: '3.8'
 
 services:
@@ -47,7 +47,9 @@ services:
       - DB=dbmovies
     # command: python manage.py makemigrations
     command: python manage.py runserver 0.0.0.0:8000
-    command: gunicorn --reload --bind 0.0.0.0:8000 movieScraper.wsgi:application
+    # Ahora ocupamos daphne por que acepta http2 y websocket a diferencia de gunicorn
+    # command: gunicorn --reload --bind 0.0.0.0:8000 movieScraper.wsgi:application
+    command: daphne -b 0.0.0.0 -p 8000 movieScraper.asgi:application
     networks:
       - django-network
 
@@ -69,6 +71,33 @@ services:
     container_name: broker-rabbitmq
     ports:
       - 5672:5672
+    depends_on:
+      - nginx-django
+      - movies-api
+    networks:
+      - django-network
+
+  broker-redis:
+    image: redis:latest
+    container_name: broker-redis
+    ports:
+      - 6379:6379
+    depends_on:
+      - nginx-django
+      - movies-api
+    networks:
+      - django-network
+
+  celery-worker:
+    container_name: celery-worker
+    build: .
+    volumes: 
+      - .:/app
+    depends_on:
+      - nginx-django
+      - movies-api
+      - broker-rabbitmq
+    command: celery -A api worker --loglevel=INFO 
     networks:
       - django-network
 

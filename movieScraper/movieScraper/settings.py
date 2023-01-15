@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
-import os 
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('KEY') 
+SECRET_KEY = os.getenv('KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(int(os.getenv('DEBUG',0))) 
+DEBUG = bool(int(os.getenv('DEBUG',0)))
 
 ALLOWED_HOSTS = []
 
@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'movieScraper',
     'api',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,7 +71,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'movieScraper.wsgi.application'
+# WSGI_APPLICATION = 'movieScraper.wsgi.application'
+ASGI_APPLICATION = 'movieScraper.asgi.application'
 
 
 # Database
@@ -79,9 +81,9 @@ WSGI_APPLICATION = 'movieScraper.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': os.getenv('DB'), 
+        'NAME': os.getenv('DB'),
         'ENFORCE_SCHEMA': False,
-        'CLIENT':{
+        'CLIENT': {
             'host': 'mongodb://root:example@data-movies:27017/'
         }
     }

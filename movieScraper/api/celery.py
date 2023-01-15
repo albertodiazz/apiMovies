@@ -6,7 +6,13 @@ from celery import Celery
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'movieScraper.settings')
 
 app = Celery('api',
-             broker='amqp://broker-rabbitmq')
+             broker='amqp://broker-rabbitmq',
+             backend='redis://broker-redis:6379/0')
+# TODO : IMPORTANTE
+# Mongo no es la herramienta para ocuparse como backend ya que al momento
+# de querer leer los mensajes en otra aplicacion no lograba obetenerlos. Sin
+# embaro con redis fue muy sencillo
+# backend='mongodb://root:example@data-movies:27017/')
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.

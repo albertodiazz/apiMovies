@@ -2,6 +2,8 @@ import argparse
 import requests
 import json
 import re
+from celery.result import AsyncResult
+from celery import Celery
 
 art = '''
                    _
@@ -23,10 +25,12 @@ https://linktr.ee/albertodiazz
 '''
 print(art)
 
+# Unicode icone
 checkIcon = u'\u2705'
 error = u'\u274C'
 moviesIcon = '🍿'
 linkIcon = '🔗'
+waitIcon = '⌛'
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('-s', '--search',
@@ -39,6 +43,29 @@ parser.add_argument('-n', '--num',
 
 args = parser.parse_args()
 
+app = Celery('api',
+             broker='amqp://127.0.0.1:5672',
+             backend='redis://127.0.0.1:6379/0')
+
+
+def printPretty(getRes):
+    '''Funcion para imprimir de forma bonita los nombres y url
+       ARGS:
+        getRes dict = Es el resultado de nuestra tarea en celery
+    '''
+    for i in range(len(list(getRes))):
+        names = re.findall('[^/]+(?=/$|$)', str(list(getRes)[i]))
+        for ns in range(len(names)):
+            # print(f'{names[ns]}')
+            print(f'{moviesIcon} {names[ns]}')
+            try:
+                for x in range(len(list(getRes)[i])):
+                    links = getRes[list(getRes)[i]][x]
+                    # print(f'{links}')
+                    print(f'{linkIcon} {links}')
+            except IndexError:
+                pass
+
 
 def searchMovies(search: str,
                  num: int):
@@ -46,22 +73,13 @@ def searchMovies(search: str,
         msg = f'{checkIcon} Searching links...'
         print(msg)
         res = requests.get(f'http://localhost/api/movies/{search}/{num}')
-        # TODO: IMPORTANTE
-        # Es para que lo busque ya que gnula contruye sun likns asi hola-mundo
-        search = '-'.join(search.split(' '))
-        if len(res.json()[search]) == 0:
-            msgDontFound = f'{error} Dont found anything...'
-            print(msgDontFound)
-        else:
-            data = dict(res.json()[search])
-            for i in range(len((data.keys()))):
-                names = re.findall('[^/]+(?=/$|$)', str(list(data.keys())[i]))
-                for ns in range(len(names)):
-                    print(f'{moviesIcon} {names[ns]}')
-                for x in range(len(data[list(data.keys())[i]])):
-                    links = data[list(data.keys())[i]][x]
-                    print(f'{linkIcon} {links}')
-                    # print(data[list(data.keys())[i]][x])
+
+        print(f'{waitIcon} {"Wait..."}')
+        getcelery = AsyncResult(res.json()['id'], app=app)
+        # print(getcelery.get())
+        getResult = getcelery.get()
+        printPretty(getResult)
+
     except json.JSONDecodeError:
         msgDontFound = f'{error} Timeout Exceeded try with less results...'
         print(msgDontFound)

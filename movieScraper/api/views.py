@@ -29,14 +29,19 @@ def concurrency(request, search, numresults):
     startTime = time.time()
     joinUrl = ''.join(url)
 
-    runScrapperGnula.delay(joinUrl, search)
+    # Aqui es donde mandamos nuestra tarea al broker
+    result = runScrapperGnula.delay(joinUrl, search)
 
     data = {
         'time': f'{time.time()-startTime}',
-        'res': f'{201}',
+        'id': f'{result}',
     }
+    print('\n-----------------', flush=True)
+    print(result, flush=True)
+    print('\n-----------------', flush=True)
 
     return HttpResponse(json.dumps(data, indent=4),
+                        status=201,
                         content_type='application/json')
 
 
