@@ -38,7 +38,7 @@ services:
     ports:
       - 8000:8000
     volumes: 
-      - .:/app
+      - ./movieScraper:/app
     depends_on:
       - data-movies
     environment:
@@ -57,7 +57,7 @@ services:
     image: nginx:1.23.1-alpine
     container_name: nginx-django
     volumes:
-      - ./network/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./movieScraper/network/nginx/default.conf:/etc/nginx/conf.d/default.conf
     restart: on-failure
     ports:
       - 80:80
@@ -92,7 +92,7 @@ services:
     container_name: celery-worker
     build: .
     volumes: 
-      - .:/app
+      - ./movieScraper:/app
     depends_on:
       - nginx-django
       - movies-api
